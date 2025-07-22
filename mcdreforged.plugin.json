@@ -1,16 +1,13 @@
 {
-    "id": "my_plugin",
-    "version": "1.0.0",
-    "name": "My Plugin",
-    "description": "This description is a description to your plugin",
+    "id": "ciki_ecg",
+    "version": "0.1.1",
+    "name": "Ciki ECG",
+    "description": "Ciki的服务器心电监护仪",
     "author": [
-        "You"
+        "Crystal0404"
     ],
-    "link": "https://github.com/MCDReforged/PluginTemplate",
+    "link": "https://github.com/Crystal0404/CikiECG",
     "dependencies": {
-    },
-
-    "resources": [
-        "lang"
-    ]
+        "quick_backup_multi": ">=1.10.1"
+    }
 }
