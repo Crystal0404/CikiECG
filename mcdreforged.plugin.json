@@ -1,6 +1,6 @@
 {
     "id": "ciki_ecg",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "name": "Ciki ECG",
     "description": "Ciki的服务器心电监护仪",
     "author": [
