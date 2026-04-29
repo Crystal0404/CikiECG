@@ -1,26 +1,25 @@
-name: main
+name: release
 on:
   release:
-    types: [ published ]
+    types:
+      - published
 
 jobs:
-  publish:
-    permissions:
-      contents: write
-    runs-on: ubuntu-24.04
+  release:
+    runs-on: ubuntu-latest
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
-      - name: pip env
-        run: pip install -r requirements.txt
-      - name: build
+          python-version: '3.14'
+      - name: pip requirements
+        run: pip install -r requirements-dev.txt
+      - name: pack
         run: mcdreforged pack
       - name: publish
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          files: |
-            *.mcdr
+          tag_name: ${{ github.event.release.tag_name }}
+          files: '*.pyz'

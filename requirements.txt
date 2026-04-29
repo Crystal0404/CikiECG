@@ -1,5 +1,1 @@
-# Add your python package requirements here, just like regular requirements.txt
-
-mcdreforged>=2.14.7
-mcstatus>=12.0.2
-ping3>=5.1.3
+pydantic >= 2.13.3

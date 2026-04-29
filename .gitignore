@@ -133,4 +133,6 @@ dmypy.json
 
 # MCDR
 *.mcdr
-mcdr
+*.pyz
+/mcdr
+config.json
