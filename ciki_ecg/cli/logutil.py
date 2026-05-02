@@ -8,13 +8,13 @@ class Logger:
         handler = StreamHandler()
         handler.setFormatter(
             ColoredFormatter(
-                fmt="%(bold_green)s[%(asctime)s]%(reset)s " +
-                "%(log_color)s[%(levelname)s/%(name)s]%(reset)s%(thin)s: %(reset)s" +
-                "%(log_color)s%(message)s",
+                fmt="[%(bold_green)s%(asctime)s%(reset)s] " +
+                "[%(log_color)s%(levelname)s%(reset)s/%(name)s]: " +
+                "%(message)s",
                 datefmt="%Y-%m-%d | %H:%M:%S",
                 log_colors={
                     "DEBUG": "cyan",
-                    "INFO": "thin",
+                    "INFO": "green",
                     "WARNING": "yellow",
                     "ERROR": "red",
                     "CRITICAL": "red,bg_white"
