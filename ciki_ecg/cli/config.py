@@ -14,6 +14,8 @@ class Client(BaseModel):
 
 
 class Server(BaseModel):
+    model_config = ConfigDict(strict=True)
+
     ip: str = "127.0.0.1"
     port: int = 8888
 
@@ -26,7 +28,7 @@ class Config(BaseModel):
     server_bind: Server = Field(default_factory=Server)
     fail_try: int = 3
     shutdown: bool = False
-    shutdown_time: int = 3600
+    shutdown_time: int = 600
     clients: list[Client] = Field(default_factory=list)
 
 

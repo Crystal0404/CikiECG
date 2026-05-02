@@ -48,7 +48,7 @@ class UdpClient:
 
     def check_close_condition(self):
         if self.online: return
-        count = CONFIG.stop_time - self.time
+        count = CONFIG.stop_count - self.time
         self.si.broadcast(
             RTextBase.format("服务器将于{}次重试失败后关闭", RText(count, color=RColor.red))
         )

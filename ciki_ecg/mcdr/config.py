@@ -8,4 +8,4 @@ class Config(BaseModel):
     backup: bool = False
     backup_command: str = "!!qb make"
     stop: bool = True
-    stop_time: int = 3
+    stop_count: int = 3
