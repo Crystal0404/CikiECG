@@ -38,14 +38,14 @@ class UdpServer:
         LOG.info("bye~")
 
     def run(self):
-        send_thread = Thread(target=self.start_broadcast, daemon=True)
+        send_thread = Thread(target=self._start_broadcast, daemon=True)
         send_thread.start()
-        input_thread = Thread(target=self.handle_input, daemon=True)
+        input_thread = Thread(target=self._handle_input, daemon=True)
         input_thread.start()
         send_thread.join()
 
 
-    def handle_input(self):
+    def _handle_input(self):
         while True:
             i = input()
             if i == "stop":
@@ -55,37 +55,37 @@ class UdpServer:
             else:
                 LOG.error("unknown instructions")
 
-    def start_broadcast(self):
+    def _start_broadcast(self):
         with socket(AF_INET, SOCK_DGRAM) as server_socket:
             server_socket.bind(self.bind)
             LOG.info(f"successfully started and bound to {self.bind[0]}:{self.bind[1]}")
-            self.broadcast_loop(server_socket)
+            self._broadcast_loop(server_socket)
 
-    def broadcast_loop(self, server: socket):
+    def _broadcast_loop(self, server: socket):
         while True:
-            self.refresh_status()
-            self.send(server)
-            self.check_shutdown_condition()
+            self._refresh_status()
+            self._send(server)
+            self._check_shutdown_condition()
             self.event.wait(self.interval)
             if self.event.is_set(): break
 
-    def send(self, server: socket):
+    def _send(self, server: socket):
         for e in self.clients:
             client = (e.ip, e.port)
-            server.sendto(self.get_data(), client)
+            server.sendto(self._get_data(), client)
 
-    def check_shutdown_condition(self):
+    def _check_shutdown_condition(self):
         if self.time > self.fail_try:
             self.event.set()
             LOG.info("The server has not been powered for a long time, and the program is about to exit")
             if self.should_shutdown:
-                self.shutdown_server()
+                self._shutdown_server()
 
-    def shutdown_server(self):
+    def _shutdown_server(self):
         LOG.info(f"The server will be down after {self.shutdown_time}s")
         run(["shutdown", "/s", "/t", f"{self.shutdown_time}"])
 
-    def refresh_status(self):
+    def _refresh_status(self):
         online = is_online()
 
         if (self.time != 0) and online:
@@ -102,7 +102,7 @@ class UdpServer:
             self.time += 1
 
 
-    def get_data(self) -> bytes:
+    def _get_data(self) -> bytes:
         data = Data(online=self.online, time=self.time)
         return data.model_dump_json().encode("utf-8")
 
