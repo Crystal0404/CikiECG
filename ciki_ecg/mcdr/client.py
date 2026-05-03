@@ -1,65 +1,81 @@
-from threading import Thread, Event
 from ciki_ecg.mcdr import CONFIG
 from ciki_ecg.data import Data
 from ciki_ecg.mcdr.event import *
 from socket import socket, AF_INET, SOCK_DGRAM
 from pydantic import ValidationError
 from mcdreforged import *
+from asyncio import CancelledError, Task
+from threading import Thread, Event
+
+import asyncio
 
 
 class UdpClient:
     def __init__(self):
         self.event = Event()
+
         self.si = PluginServerInterface.get_instance()
+        self.client = (CONFIG.ip, CONFIG.port)
+
         self.online = True
         self.time = 0
 
-        self.thread = Thread(target=self.start_subscription, daemon=True)
+        self.thread = Thread(target=self._thread_entry, daemon=True, name="CikiECG")
 
-    def stop(self):
-        self.event.set()
+    def start(self):
+        self.thread.start()
+
+    def shutdown_with_blocking(self):
+        self._shutdown()
         self.thread.join()
 
-    def run(self):
-        self.thread.start()
-        self.si.logger.info("start the subscription thread")
+    def _shutdown(self):
+        self.event.set()
 
-    def start_subscription(self):
+    def _thread_entry(self):
+        asyncio.run(self._async_main())
+
+    async def _async_main(self):
+        self.si.logger.info("Start the listening task")
+        task = asyncio.create_task(self._receive_loop())
+        asyncio.create_task(self._await_stop_signal(task))
+        await task
+        self.si.logger.info("Stop the listening task")
+
+    async def _await_stop_signal(self, task: Task):
+        await asyncio.to_thread(self.event.wait)
+        task.cancel()
+
+    async def _receive_loop(self):
         with socket(AF_INET, SOCK_DGRAM) as s:
-            s.bind((CONFIG.ip, CONFIG.port))
-            s.setblocking(False)
-            self.subscription_loop(s)
+            s.bind(self.client)
+            await self._handle_datagram_loop(s)
 
-    def subscription_loop(self, s: socket):
+    async def _handle_datagram_loop(self, s: socket):
+        loop = asyncio.get_running_loop()
         while True:
             try:
-                data, _ = s.recvfrom(1024)
-            except BlockingIOError:
-                self.event.wait(timeout=5)
-                if self.event.is_set():
-                    self.si.logger.info("stop the subscription thread")
-                    break
-                else:
-                    continue
-            data = self.get_data(data)
+                b_data, _ = await loop.sock_recvfrom(s, 1024)
+            except CancelledError:
+                break
+            data = self.get_data(b_data)
             if data is None: continue
-            self.refresh_status(data)
-            self.check_close_condition()
+            self._refresh_status(data)
+            self._check_close_server()
 
-    def check_close_condition(self):
+    def _check_close_server(self):
         if self.online: return
         count = CONFIG.stop_count - self.time
         self.si.broadcast(
             RTextBase.format("服务器将于{}次重试失败后关闭", RText(count, color=RColor.red))
         )
         if count <= 0:
-            self.event.set()
+            self._shutdown()
             self.si.stop_exit()
             self.si.wait_until_stop()
             self.si.dispatch_event(SERVER_STOP, ())
 
-
-    def refresh_status(self, data: Data):
+    def _refresh_status(self, data: Data):
         if self.online and not data.online:
             self.si.broadcast(
                 RTextBase.format("{}: 检测到服务器停电!", RText("警告", color=RColor.red))
@@ -79,5 +95,6 @@ class UdpClient:
             return Data.model_validate_json(data_str)
         except ValidationError:
             return None
+
 
 INSTANCE = UdpClient()

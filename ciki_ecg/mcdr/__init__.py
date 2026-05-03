@@ -10,12 +10,12 @@ def on_load(plg: PluginServerInterface, *args):
 
     global CONFIG
     CONFIG = plg.load_config_simple(target_class=Config)
-    INSTANCE.run()
+    INSTANCE.start()
 
 
 def on_unload(plg: PluginServerInterface):
     from ciki_ecg.mcdr.client import INSTANCE
-    INSTANCE.stop()
+    INSTANCE.shutdown_with_blocking()
 
 @event_listener(POWER_OFF)
 def on_power_off(plg: PluginServerInterface):
