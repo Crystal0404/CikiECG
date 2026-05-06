@@ -1,7 +1,10 @@
-from pydantic import BaseModel, Field, ConfigDict, ValidationError
 from functools import cache
-from ciki_ecg.cli.logutil import LOG
 from pathlib import Path
+
+from cryptography.fernet import Fernet
+from pydantic import BaseModel, Field, ConfigDict, ValidationError, field_validator
+
+from ciki_ecg.cli.logutil import LOG
 
 __all__ = ["config", "write_config"]
 
@@ -30,6 +33,13 @@ class Config(BaseModel):
     shutdown: bool = False
     shutdown_time: int = 600
     clients: list[Client] = Field(default_factory=list)
+    aes_key: str = Fernet.generate_key().decode("utf-8")
+
+    @field_validator("aes_key")
+    @classmethod
+    def key_validation(cls, key: str):
+        Fernet(key) # If it doesn't work, a ValueError will pop up
+        return key
 
 
 PATH = Path("config.json")

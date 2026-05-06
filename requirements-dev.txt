@@ -2,3 +2,4 @@ mcdreforged >= 2.15.7
 pydantic >= 2.13.3
 colorlog >= 6.10.1
 ping3 >= 5.1.5
+cryptography >= 48.0.0

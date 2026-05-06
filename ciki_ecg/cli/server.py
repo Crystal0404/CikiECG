@@ -1,96 +1,115 @@
+import asyncio
+import subprocess
+import time
+from asyncio import Event, CancelledError, Task, AbstractEventLoop
+from socket import socket, AF_INET, SOCK_DGRAM
+from threading import Thread
+
+from cryptography.fernet import Fernet
+from ping3 import ping
+
 from ciki_ecg.cli.config import config
 from ciki_ecg.cli.logutil import LOG
 from ciki_ecg.data import Data
-from ping3 import ping
-from threading import Thread, Event
-from socket import socket, AF_INET, SOCK_DGRAM
-from subprocess import run
-
-import signal
 
 
 def is_online() -> bool:
-    status = ping(config().ip, timeout=config().timeout)
+    try:
+        status = ping(config().ip, timeout=config().timeout)
+    except OSError:
+        return False
+
     if status is None:
         return False
     else:
         return status is not False
 
+
 class UdpServer:
     def __init__(self):
-        self.event = Event()
-        self.interval = config().interval
-        self.bind = (config().server_bind.ip, config().server_bind.port)
-        self.clients = config().clients
-        self.fail_try = config().fail_try
-        self.should_shutdown = config().shutdown
-        self.shutdown_time = config().shutdown_time
+        configs = config()
 
-        # server status
+        # AES instance
+        self.fernet = Fernet(configs.aes_key)
+
+        # config
+        self.interval = configs.interval
+        self.bind = (configs.server_bind.ip, configs.server_bind.port)
+        self.clients = configs.clients
+        self.fail_try = configs.fail_try
+        self.should_shutdown = configs.shutdown
+        self.shutdown_time = configs.shutdown_time
+
+        # status
         self.online = True
         self.time = 0
 
-        # signal
-        signal.signal(signal.SIGINT, self.__signal_handler)
-
-    def __signal_handler(self, *args, **kwargs): # noqa
-        self.event.set()
+    def start(self):
+        asyncio.run(self._async_main())
         LOG.info("bye~")
 
-    def run(self):
-        send_thread = Thread(target=self._start_broadcast, daemon=True)
-        send_thread.start()
-        input_thread = Thread(target=self._handle_input, daemon=True)
-        input_thread.start()
-        send_thread.join()
+    async def _async_main(self):
+        loop = asyncio.get_running_loop()
+        broadcast_task = asyncio.create_task(self._async_broadcast())
+        thread = Thread(target=self._input_thread, args=(broadcast_task, loop,), daemon=True)
+        thread.start()
+        await broadcast_task
 
-
-    def _handle_input(self):
+    @staticmethod
+    def _input_thread(task: Task, loop: AbstractEventLoop):
         while True:
-            i = input()
-            if i == "stop":
-                self.event.set()
-                LOG.info("bye~")
+            input_str = input()
+            if input_str == "stop":
+                loop.call_soon_threadsafe(task.cancel, ())
                 break
             else:
-                LOG.error("unknown instructions")
+                LOG.error("Unknown command")
 
-    def _start_broadcast(self):
-        with socket(AF_INET, SOCK_DGRAM) as server_socket:
-            server_socket.bind(self.bind)
+    async def _async_broadcast(self):
+        with socket(AF_INET, SOCK_DGRAM) as server:
+            server.bind(self.bind)
             LOG.info(f"successfully started and bound to {self.bind[0]}:{self.bind[1]}")
-            self._broadcast_loop(server_socket)
+            await self._broadcast_loop(server)
 
-    def _broadcast_loop(self, server: socket):
+    async def _broadcast_loop(self, server: socket):
+        event = Event()
         while True:
             self._refresh_status()
             self._send(server)
-            self._check_shutdown_condition()
-            self.event.wait(self.interval)
-            if self.event.is_set(): break
+            self._check_shutdown_condition(event)
+            if event.is_set(): break
+            try:
+                await asyncio.sleep(self.interval)
+            except CancelledError:
+                break
 
     def _send(self, server: socket):
         for e in self.clients:
             client = (e.ip, e.port)
             server.sendto(self._get_data(), client)
 
-    def _check_shutdown_condition(self):
+    def _check_shutdown_condition(self, event: Event):
         if self.time > self.fail_try:
-            self.event.set()
+            event.set()
             LOG.info("The server has not been powered for a long time, and the program is about to exit")
             if self.should_shutdown:
-                self._shutdown_server()
+                self._shutdown()
 
-    def _shutdown_server(self):
+    def _shutdown(self):
         LOG.info(f"The server will be down after {self.shutdown_time}s")
-        run(["shutdown", "/s", "/t", f"{self.shutdown_time}"])
+        subprocess.run(["shutdown", "/s", "/t", f"{self.shutdown_time}"])
+
+    def _get_data(self) -> bytes:
+        data = Data(online=self.online, time=self.time)
+        data_byte = data.model_dump_json().encode("utf-8")
+        token = self.fernet.encrypt_at_time(data_byte, int(time.time()))
+        return token
 
     def _refresh_status(self):
         online = is_online()
 
         if (self.time != 0) and online:
             LOG.info("The server is powered back")
-
         if (self.time == 0) and not online:
             LOG.warning("The server is detected to stop powering")
 
@@ -100,12 +119,3 @@ class UdpServer:
         else:
             self.online = False
             self.time += 1
-
-
-    def _get_data(self) -> bytes:
-        data = Data(online=self.online, time=self.time)
-        return data.model_dump_json().encode("utf-8")
-
-if __name__ == "__main__":
-    s = UdpServer()
-    s.run()

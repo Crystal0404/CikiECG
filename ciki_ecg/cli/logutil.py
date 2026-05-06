@@ -1,6 +1,6 @@
-from colorlog import StreamHandler, getLogger, ColoredFormatter
-
 import logging
+
+from colorlog import StreamHandler, getLogger, ColoredFormatter
 
 
 class Logger:

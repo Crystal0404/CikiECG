@@ -1,0 +1,9 @@
+ciki_ecg:
+  aes_key_not_set: 你还没有在配置文件中设置aes_key, 请在正确设置后重载插件ciki_ecg
+  back_up: 开始备份
+  task_start: 开始监听 {}:{}
+  task_stop: 停止监听
+  power_off: 检测到服务器停电
+  power_on: 服务器恢复供电
+  stop: 服务器将于{}次尝试后关闭
+  warning: 警告

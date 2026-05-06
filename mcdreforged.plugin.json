@@ -13,7 +13,8 @@
   },
   "resources": [
     "__main__.py",
-    "LICENSE"
+    "LICENSE",
+    "lang"
   ],
   "archive_name": "CikiECG-v{version}.pyz"
 }
