@@ -14,6 +14,7 @@ def register() -> Namespace:
 
     return parser.parse_args()
 
+
 def run():
     args = register()
     match args.type:

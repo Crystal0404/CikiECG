@@ -22,6 +22,7 @@ class Server(BaseModel):
     ip: str = "127.0.0.1"
     port: int = 8888
 
+
 class Config(BaseModel):
     model_config = ConfigDict(strict=True)
 
@@ -38,7 +39,7 @@ class Config(BaseModel):
     @field_validator("aes_key")
     @classmethod
     def key_validation(cls, key: str):
-        Fernet(key) # If it doesn't work, a ValueError will pop up
+        Fernet(key)  # If it doesn't work, a ValueError will pop up
         return key
 
 
@@ -65,6 +66,7 @@ def write_config():
     with PATH.open("w", encoding="utf-8") as f:
         f.write(Config().model_dump_json(indent=2))
     LOG.info("Successfully created config file!")
+
 
 if __name__ == "__main__":
     print(config())

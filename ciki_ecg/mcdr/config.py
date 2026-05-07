@@ -14,8 +14,9 @@ class Decrypt(BaseModel):
         if key == "":
             return key
         else:
-            Fernet(key) # If it doesn't work, a ValueError will pop up
+            Fernet(key)  # If it doesn't work, a ValueError will pop up
             return key
+
 
 class Config(BaseModel):
     model_config = ConfigDict(strict=True)

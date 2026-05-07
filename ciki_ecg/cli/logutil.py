@@ -9,8 +9,8 @@ class Logger:
         handler.setFormatter(
             ColoredFormatter(
                 fmt="[%(bold_green)s%(asctime)s%(reset)s] " +
-                "[%(log_color)s%(levelname)s%(reset)s/%(name)s]: " +
-                "%(message)s",
+                    "[%(log_color)s%(levelname)s%(reset)s/%(name)s]: " +
+                    "%(message)s",
                 datefmt="%Y-%m-%d | %H:%M:%S",
                 log_colors={
                     "DEBUG": "cyan",
@@ -27,5 +27,6 @@ class Logger:
 
     def get_log(self):
         return self.logger
+
 
 LOG = Logger("CikiECG").get_log()
