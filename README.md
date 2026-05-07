@@ -50,7 +50,7 @@ pip install -r requirements.txt
 
 也可以使用此命令安装
 ```commandline
-pip install pydantic colorlog ping3
+pip install colorlog cryptography pydantic ping3
 ```
 
 ### MCDR
@@ -60,7 +60,7 @@ pip install pydantic colorlog ping3
 
 也可以使用此命令安装
 ```commandline
-pip install pydantic
+pip install cryptography pydantic
 ```
 
 ## 配置
@@ -87,7 +87,7 @@ python CikiECG-v2.0.0-alpha.1.pyz init
   "shutdown": false, // 如果为true, 程序关闭前会为你的物理机设置定时关机(仅windows可用)
   "shutdown_time": 600, // 定时关机时间, 建议设置一个较长时间
   "clients": [
-    // 客户端的列表
+    // MCDR服务器的列表
     {
       "ip": "127.0.0.1",
       "port": 8886
@@ -96,7 +96,8 @@ python CikiECG-v2.0.0-alpha.1.pyz init
       "ip": "127.0.0.1",
       "port": 8885
     }
-  ]
+  ],
+  "aes_key": "..." // 配置文件生成时会随机生成一个安全的aes_key, 强烈建议保持默认
 }
 ```
 
@@ -108,7 +109,11 @@ python CikiECG-v2.0.0-alpha.1.pyz init
     "backup": false, // 设置为true, 首次检测到停电时会触发备份
     "backup_command": "!!qb make", // 备份指令, 配合QBM等插件使用
     "stop": true, // 停电后是否自动关闭服务器
-    "stop_count": 3 // stop设置为true时, cli连续n此ping不到路由器, 服务器将自动关闭(不要超过cli中fail_try的值!)
+    "stop_count": 3, // stop设置为true时, cli连续n此ping不到路由器, 服务器将自动关闭(不要超过cli中fail_try的值!)
+    "decrypt": {
+        "aes_key": "", // 设置为与CLI相同的aes_key
+        "ttl": 5 // 数据有效期, 超过有效期的数据会被丢弃(如果你不明白这是什么不要更改它)
+    }
 }
 ```
 
@@ -126,6 +131,14 @@ python CikiECG-v2.0.0-alpha.1.pyz start
 与其他插件一样, 会自动启动
 
 插件卸载时会自动关闭
+
+## 加密
+
+于 `2.0.0-alpha.3` 添加此功能
+
+发出的数据报会通过AES-128-CBC加密
+
+更多信息见 [https://github.com/fernet/spec/blob/master/Spec.md](https://github.com/fernet/spec/blob/master/Spec.md)
 
 ## MCDR事件
 
