@@ -43,7 +43,7 @@ class UdpClient:
         asyncio.run(self._async_main())
 
     async def _async_main(self):
-        self.si.logger.info(self.si.rtr("ciki_ecg.task_start", self.client[0], self.client[1]))
+        self.si.logger.info(self.si.rtr("ciki_ecg.task_start"))
         task = asyncio.create_task(self._receive_loop())
         asyncio.create_task(self._await_stop_signal(task))
         await task
