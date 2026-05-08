@@ -22,6 +22,7 @@ class UdpClient:
 
         self.si = PluginServerInterface.get_instance()
         self.client = (CONFIG.ip, CONFIG.port)
+        self.timeout = CONFIG.timeout
 
         self.online = True
         self.time = 0
@@ -59,16 +60,27 @@ class UdpClient:
             await self._handle_datagram_loop(s)
 
     async def _handle_datagram_loop(self, s: socket):
-        loop = asyncio.get_running_loop()
         while True:
             try:
-                b_data, _ = await loop.sock_recvfrom(s, 1024)
+                async with asyncio.timeout(self.timeout):
+                    data = await self._recv(s)
+            except TimeoutError:
+                self.si.logger.warning(self.si.rtr("ciki_ecg.timeout", self.timeout))
+                self._stop_server()
+                break
             except CancelledError:
                 break
+            else:
+                self._refresh_status(data)
+                self._check_close_server()
+
+    async def _recv(self, s: socket) -> Data:
+        loop = asyncio.get_running_loop()
+        while True:
+            b_data, _ = await loop.sock_recvfrom(s, 1024)
             data = self.get_data(b_data)
-            if data is None: continue
-            self._refresh_status(data)
-            self._check_close_server()
+            if data is not None:
+                return data
 
     def _check_close_server(self):
         if self.online: return
@@ -77,10 +89,13 @@ class UdpClient:
             self.si.rtr("ciki_ecg.stop", RText(count, color=RColor.red))
         )
         if count <= 0:
-            self._shutdown()
-            self.si.stop_exit()
-            self.si.wait_until_stop()
-            self.si.dispatch_event(SERVER_STOP, ())
+            self._stop_server()
+
+    def _stop_server(self):
+        self._shutdown()
+        self.si.stop_exit()
+        self.si.wait_until_stop()
+        self.si.dispatch_event(SERVER_STOP, ())
 
     def _refresh_status(self, data: Data):
         if self.online and not data.online:

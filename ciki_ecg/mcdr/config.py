@@ -27,4 +27,5 @@ class Config(BaseModel):
     backup_command: str = "!!qb make"
     stop: bool = True
     stop_count: int = 3
+    timeout: int | None = None
     decrypt: Decrypt = Field(default_factory=Decrypt)
