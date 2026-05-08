@@ -5,6 +5,7 @@ ciki_ecg:
   task_stop: 停止监控服务器供电状态
   power_off: 检测到服务器停电
   power_on: 服务器恢复供电
-  stop: 服务器将于{}次尝试后关闭
+  stop_try: 服务器将于{}次尝试后关闭
+  stop: 服务器即将关闭
   timeout: 超过{}s未收到任何数据, 服务器即将关闭
   warning: 警告

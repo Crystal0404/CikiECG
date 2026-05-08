@@ -23,6 +23,7 @@ class UdpClient:
         self._si = PluginServerInterface.get_instance()
         self._client = (CONFIG.ip, CONFIG.port)
         self._timeout = CONFIG.timeout
+        self._stop_count = CONFIG.stop_count
 
         # status
         self._online = True
@@ -95,11 +96,14 @@ class UdpClient:
 
     def _check_close_server(self):
         if self._online: return
-        count = CONFIG.stop_count - self._time
-        self._si.broadcast(
-            self._si.rtr("ciki_ecg.stop", RText(count, color=RColor.red))
-        )
-        if count <= 0:
+        count = self._stop_count - self._time
+        if count > 0:
+            self._si.broadcast(
+                self._si.rtr("ciki_ecg.stop_try", RText(count, color=RColor.red))
+            )
+        else:
+            self._si.broadcast(RText(self._si.rtr("ciki_ecg.stop"), color=RColor.red))
+            time.sleep(3)
             self._stop_server()
 
     def _stop_server(self):
