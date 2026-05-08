@@ -110,6 +110,7 @@ python CikiECG-v2.0.0-alpha.1.pyz init
     "backup_command": "!!qb make", // 备份指令, 配合QBM等插件使用
     "stop": true, // 停电后是否自动关闭服务器
     "stop_count": 3, // stop设置为true时, cli连续n此ping不到路由器, 服务器将自动关闭(不要超过cli中fail_try的值!)
+    "timeout": null, // 设置在多少秒内没收到任何来自CLI的有效数据包后关闭服务器, 设置为null禁用此功能
     "decrypt": {
         "aes_key": "", // 设置为与CLI相同的aes_key
         "ttl": 5 // 数据有效期, 超过有效期的数据会被丢弃(如果你不明白这是什么不要更改它)
