@@ -78,7 +78,7 @@ class UdpClient:
         loop = asyncio.get_running_loop()
         while True:
             b_data, _ = await loop.sock_recvfrom(s, 1024)
-            data = self.get_data(b_data)
+            data = self._get_data(b_data)
             if data is not None:
                 return data
 
@@ -114,7 +114,7 @@ class UdpClient:
         self.online = data.online
         self.time = data.time
 
-    def get_data(self, data: bytes) -> Data | None:
+    def _get_data(self, data: bytes) -> Data | None:
         try:
             data_str = self.fernet.decrypt_at_time(data, self.ttl, int(time.time())).decode("utf-8")
             data = Data.model_validate_json(data_str)
