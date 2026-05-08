@@ -15,57 +15,60 @@ from ciki_ecg.mcdr.event import *
 
 class UdpClient:
     def __init__(self):
-        self.ttl = CONFIG.decrypt.ttl
-        self.fernet = Fernet(CONFIG.decrypt.aes_key)
+        # AES instance
+        self._ttl = CONFIG.decrypt.ttl
+        self._fernet = Fernet(CONFIG.decrypt.aes_key)
 
-        self.event = Event()
+        # config and mcdr
+        self._si = PluginServerInterface.get_instance()
+        self._client = (CONFIG.ip, CONFIG.port)
+        self._timeout = CONFIG.timeout
 
-        self.si = PluginServerInterface.get_instance()
-        self.client = (CONFIG.ip, CONFIG.port)
-        self.timeout = CONFIG.timeout
+        # status
+        self._online = True
+        self._time = 0
 
-        self.online = True
-        self.time = 0
-
-        self.thread = Thread(target=self._thread_entry, daemon=True, name="CikiECG")
+        # threading
+        self._event = Event()
+        self._thread = Thread(target=self._thread_entry, daemon=True, name="CikiECG")
 
     def start(self):
-        self.thread.start()
+        self._thread.start()
 
     def shutdown_with_blocking(self):
         self._shutdown()
-        if self.thread.is_alive():
-            self.thread.join()
+        if self._thread.is_alive():
+            self._thread.join()
 
     def _shutdown(self):
-        self.event.set()
+        self._event.set()
 
     def _thread_entry(self):
         asyncio.run(self._async_main())
 
     async def _async_main(self):
-        self.si.logger.info(self.si.rtr("ciki_ecg.task_start"))
+        self._si.logger.info(self._si.rtr("ciki_ecg.task_start"))
         task = asyncio.create_task(self._receive_loop())
         asyncio.create_task(self._await_stop_signal(task))
         await task
-        self.si.logger.info(self.si.rtr("ciki_ecg.task_stop"))
+        self._si.logger.info(self._si.rtr("ciki_ecg.task_stop"))
 
     async def _await_stop_signal(self, task: Task):
-        await asyncio.to_thread(self.event.wait)
+        await asyncio.to_thread(self._event.wait)
         task.cancel()
 
     async def _receive_loop(self):
         with socket(AF_INET, SOCK_DGRAM) as s:
-            s.bind(self.client)
+            s.bind(self._client)
             await self._handle_datagram_loop(s)
 
     async def _handle_datagram_loop(self, s: socket):
         while True:
             try:
-                async with asyncio.timeout(self.timeout):
+                async with asyncio.timeout(self._timeout):
                     data = await self._recv(s)
             except TimeoutError:
-                self.si.logger.warning(self.si.rtr("ciki_ecg.timeout", self.timeout))
+                self._si.logger.warning(self._si.rtr("ciki_ecg.timeout", self._timeout))
                 self._stop_server()
                 break
             except CancelledError:
@@ -83,40 +86,40 @@ class UdpClient:
                 return data
 
     def _check_close_server(self):
-        if self.online: return
-        count = CONFIG.stop_count - self.time
-        self.si.broadcast(
-            self.si.rtr("ciki_ecg.stop", RText(count, color=RColor.red))
+        if self._online: return
+        count = CONFIG.stop_count - self._time
+        self._si.broadcast(
+            self._si.rtr("ciki_ecg.stop", RText(count, color=RColor.red))
         )
         if count <= 0:
             self._stop_server()
 
     def _stop_server(self):
         self._shutdown()
-        self.si.stop_exit()
-        self.si.wait_until_stop()
-        self.si.dispatch_event(SERVER_STOP, ())
+        self._si.stop_exit()
+        self._si.wait_until_stop()
+        self._si.dispatch_event(SERVER_STOP, ())
 
     def _refresh_status(self, data: Data):
-        if self.online and not data.online:
-            self.si.broadcast(
+        if self._online and not data.online:
+            self._si.broadcast(
                 RTextBase.format(
                     "{}: {}",
-                    RText(self.si.rtr("ciki_ecg.warning"), color=RColor.red),
-                    self.si.rtr("ciki_ecg.power_off")
+                    RText(self._si.rtr("ciki_ecg.warning"), color=RColor.red),
+                    self._si.rtr("ciki_ecg.power_off")
                 )
             )
-            self.si.dispatch_event(POWER_OFF, ())
-        if not self.online and data.online:
-            self.si.broadcast(RText(self.si.rtr("ciki_ecg.power_on"), color=RColor.green))
-            self.si.dispatch_event(POWER_ON, ())
+            self._si.dispatch_event(POWER_OFF, ())
+        if not self._online and data.online:
+            self._si.broadcast(RText(self._si.rtr("ciki_ecg.power_on"), color=RColor.green))
+            self._si.dispatch_event(POWER_ON, ())
 
-        self.online = data.online
-        self.time = data.time
+        self._online = data.online
+        self._time = data.time
 
     def _get_data(self, data: bytes) -> Data | None:
         try:
-            data_str = self.fernet.decrypt_at_time(data, self.ttl, int(time.time())).decode("utf-8")
+            data_str = self._fernet.decrypt_at_time(data, self._ttl, int(time.time())).decode("utf-8")
             data = Data.model_validate_json(data_str)
         except (InvalidToken, ValidationError):
             return None

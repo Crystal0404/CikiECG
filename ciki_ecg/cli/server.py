@@ -30,19 +30,19 @@ class UdpServer:
         configs = config()
 
         # AES instance
-        self.fernet = Fernet(configs.aes_key)
+        self._fernet = Fernet(configs.aes_key)
 
         # config
-        self.interval = configs.interval
-        self.bind = (configs.server_bind.ip, configs.server_bind.port)
-        self.clients = configs.clients
-        self.fail_try = configs.fail_try
-        self.should_shutdown = configs.shutdown
-        self.shutdown_time = configs.shutdown_time
+        self._interval = configs.interval
+        self._bind = (configs.server_bind.ip, configs.server_bind.port)
+        self._clients = configs.clients
+        self._fail_try = configs.fail_try
+        self._should_shutdown = configs.shutdown
+        self._shutdown_time = configs.shutdown_time
 
         # status
-        self.online = True
-        self.time = 0
+        self._online = True
+        self._time = 0
 
     def start(self):
         asyncio.run(self._async_main())
@@ -67,8 +67,8 @@ class UdpServer:
 
     async def _async_broadcast(self):
         with socket(AF_INET, SOCK_DGRAM) as server:
-            server.bind(self.bind)
-            LOG.info(f"successfully started and bound to {self.bind[0]}:{self.bind[1]}")
+            server.bind(self._bind)
+            LOG.info(f"successfully started and bound to {self._bind[0]}:{self._bind[1]}")
             await self._broadcast_loop(server)
 
     async def _broadcast_loop(self, server: socket):
@@ -79,43 +79,43 @@ class UdpServer:
             self._check_shutdown_condition(event)
             if event.is_set(): break
             try:
-                await asyncio.sleep(self.interval)
+                await asyncio.sleep(self._interval)
             except CancelledError:
                 break
 
     def _send(self, server: socket):
-        for e in self.clients:
+        for e in self._clients:
             client = (e.ip, e.port)
             server.sendto(self._get_data(), client)
 
     def _check_shutdown_condition(self, event: Event):
-        if self.time > self.fail_try:
+        if self._time > self._fail_try:
             event.set()
             LOG.info("The server has not been powered for a long time, and the program is about to exit")
-            if self.should_shutdown:
+            if self._should_shutdown:
                 self._shutdown()
 
     def _shutdown(self):
-        LOG.info(f"The server will be down after {self.shutdown_time}s")
-        subprocess.run(["shutdown", "/s", "/t", f"{self.shutdown_time}"])
+        LOG.info(f"The server will be down after {self._shutdown_time}s")
+        subprocess.run(["shutdown", "/s", "/t", f"{self._shutdown_time}"])
 
     def _get_data(self) -> bytes:
-        data = Data(online=self.online, time=self.time)
+        data = Data(online=self._online, time=self._time)
         data_byte = data.model_dump_json().encode("utf-8")
-        token = self.fernet.encrypt_at_time(data_byte, int(time.time()))
+        token = self._fernet.encrypt_at_time(data_byte, int(time.time()))
         return token
 
     def _refresh_status(self):
         online = is_online()
 
-        if (self.time != 0) and online:
+        if (self._time != 0) and online:
             LOG.info("The server is powered back")
-        if (self.time == 0) and not online:
+        if (self._time == 0) and not online:
             LOG.warning("The server is detected to stop powering")
 
         if online:
-            self.online = True
-            self.time = 0
+            self._online = True
+            self._time = 0
         else:
-            self.online = False
-            self.time += 1
+            self._online = False
+            self._time += 1
