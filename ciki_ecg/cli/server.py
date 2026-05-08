@@ -45,6 +45,10 @@ class UdpServer:
         self._time = 0
 
     def start(self):
+        """
+        Start CLI
+        :return: None
+        """
         asyncio.run(self._async_main())
         LOG.info("bye~")
 

@@ -33,9 +33,17 @@ class UdpClient:
         self._thread = Thread(target=self._thread_entry, daemon=True, name="CikiECG")
 
     def start(self):
+        """
+        Start receiving
+        :return: None
+        """
         self._thread.start()
 
     def shutdown_with_blocking(self):
+        """
+        Stop receiving and block until fully stopped
+        :return: None
+        """
         self._shutdown()
         if self._thread.is_alive():
             self._thread.join()
