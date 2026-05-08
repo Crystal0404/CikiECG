@@ -13,7 +13,7 @@ from ciki_ecg.cli.logutil import LOG
 from ciki_ecg.data import Data
 
 
-def is_online() -> bool:
+def _is_online() -> bool:
     try:
         status = ping(config().ip, timeout=config().timeout)
     except OSError:
@@ -106,7 +106,7 @@ class UdpServer:
         return token
 
     def _refresh_status(self):
-        online = is_online()
+        online = _is_online()
 
         if (self._time != 0) and online:
             LOG.info("The server is powered back")
@@ -119,3 +119,6 @@ class UdpServer:
         else:
             self._online = False
             self._time += 1
+
+
+INSTANCE = UdpServer()

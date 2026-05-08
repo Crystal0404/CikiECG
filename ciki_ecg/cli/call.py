@@ -2,7 +2,6 @@ from argparse import ArgumentParser, Namespace
 
 from ciki_ecg.cli.config import write_config
 from ciki_ecg.cli.logutil import LOG
-from ciki_ecg.cli.server import UdpServer
 
 
 def register() -> Namespace:
@@ -21,7 +20,7 @@ def run():
         case "init":
             write_config()
         case "start":
-            server = UdpServer()
-            server.start()
+            from ciki_ecg.cli.server import INSTANCE
+            INSTANCE.start()
         case _:
             LOG.info("Please add '--help' to view help information.")
