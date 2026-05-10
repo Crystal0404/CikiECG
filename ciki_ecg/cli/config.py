@@ -28,11 +28,11 @@ class Config(BaseModel):
 
     ip: str = "192.168.0.1"
     timeout: int = 5
-    interval: int = 180
+    interval: int = 100
     server_bind: Server = Field(default_factory=Server)
     fail_try: int = 3
     shutdown: bool = False
-    shutdown_time: int = 600
+    shutdown_time: int = 300
     clients: list[Client] = Field(default_factory=list)
     aes_key: str = Fernet.generate_key().decode("utf-8")
 
