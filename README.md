@@ -4,16 +4,6 @@ Ciki的服务器心电监护仪, 用于保证服务器在停电时安全存活
 
 它既是一个CLI程序, 也是一个MCDR插件
 
-## 特别注意
-
-本项目仅为满足个人需求编写, 因此
-
-**所有的功能请求会被忽略**
-
-**可能会修复部分BUG**
-
-**暂时没有计划上传至插件仓库**
-
 ## 先决条件
 1. 服务器需要连接着一台UPS(不间断电源)
 2. 一台连接着电网的路由器
@@ -39,12 +29,6 @@ flowchart TD
 
 **强烈建议在python的虚拟环境中安装所有依赖!!**
 
-如果你拥有一个类似 `requirements.txt` 的文件, 你可以使用这样的方式安装
-
-```commandline
-pip install -r requirements.txt
-```
-
 ### CLI
 依赖位于[requirements-cli.txt](https://github.com/Crystal0404/CikiECG/blob/master/requirements-cli.txt)
 
@@ -54,7 +38,6 @@ pip install colorlog cryptography pydantic ping3
 ```
 
 ### MCDR
-*我暂时没有兴趣将这个插件添加至插件仓库, 因此你不能使用MCDR的指令快捷的安装它*
 
 依赖位于[requirements.txt](https://github.com/Crystal0404/CikiECG/blob/master/requirements.txt)
 
@@ -129,9 +112,22 @@ python CikiECG-v2.0.0-alpha.1.pyz start
 ```
 
 ### MCDR
-与其他插件一样, 会自动启动
+与其他插件一样, 会随着MCDR启动
 
 插件卸载时会自动关闭
+
+## MCDR事件
+
+此插件会分发一些事件, 如有需要可以监听
+
+### `ciki_ecg.power_off`
+检测到停电时会分发此事件
+
+### `ciki_ecg.power_on`
+恢复供电时会分发此事件
+
+### `ciki_ecg.server_stop`
+由此插件关闭服务器时会分发
 
 ## 加密
 
@@ -140,19 +136,6 @@ python CikiECG-v2.0.0-alpha.1.pyz start
 发出的数据报会通过AES-128-CBC加密
 
 更多信息见 [https://github.com/fernet/spec/blob/master/Spec.md](https://github.com/fernet/spec/blob/master/Spec.md)
-
-## MCDR事件
-
-此插件会分发一些事件, 如有需要可以监听
-
-### ciki_ecg.power_off
-检测到停电时会分发此事件
-
-### ciki_ecg.power_on
-恢复供电时会分发此事件
-
-### ciki_ecg.server_stop
-由此插件关闭服务器时会分发
 
 ## 许可
 <a href="https://github.com/Crystal0404/CikiECG">CikiECG</a> © 2026 by <a href="https://github.com/Crystal0404">Crystal0404</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
