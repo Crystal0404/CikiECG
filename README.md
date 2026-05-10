@@ -1,6 +1,6 @@
 ## Ciki ECG
 
-Ciki的服务器心电监护仪, 用于保证服务器在停电时安全存活
+Ciki的服务器心电监护仪, 用于在停电时在UPS有限的供电时间内关闭服务器防止数据损坏
 
 它既是一个CLI程序, 也是一个MCDR插件
 
@@ -8,22 +8,15 @@ Ciki的服务器心电监护仪, 用于保证服务器在停电时安全存活
 1. 服务器需要连接着一台UPS(不间断电源)
 2. 一台连接着电网的路由器
 
-## 工作原理
+## 特别注意
 
-下图简要的说明了此程序核心的工作逻辑
+**不要泄露`aes_key`, 它是防御恶意攻击的最后一道屏障**
 
-```mermaid
-flowchart TD
-    A[启动CLI监控程序] --> B[设置定时器: 定期ping路由器]
-    B --> C{ping 路由器是否可达？}
-    
-    C -- 可达 --> D[构造数据包: 正常]
-    C -- 不可达 --> E[构造数据包: 停电]
-    
-    D --> F[发送到下游 MCDR 服务器]
-    E --> F
-    F --> B
-```
+## 使用
+
+你需要将它作为CLI程序启动作为服务器, 同时作为插件安装在你的MCDR服务器上作为客户端.
+
+CLI会先通过ping你的路由器判断是否停电, 再向MCDR插件客户端发送加密数据包通知当前的供电状态
 
 ## 依赖安装
 
@@ -67,7 +60,7 @@ python CikiECG-v2.0.0-alpha.1.pyz init
     "port": 8888
   },
   "fail_try": 3, // 当ping不到路由器超过3次后程序会自动关闭
-  "shutdown": false, // 如果为true, 程序关闭前会为你的物理机设置定时关机(仅windows可用)
+  "shutdown": false, // 如果为true, 程序关闭前会为你的物理机设置定时关机(目前仅windows可用)
   "shutdown_time": 600, // 定时关机时间, 建议设置一个较长时间
   "clients": [
     // MCDR服务器的列表
@@ -129,13 +122,28 @@ python CikiECG-v2.0.0-alpha.1.pyz start
 ### `ciki_ecg.server_stop`
 由此插件关闭服务器时会分发
 
+## 工作原理
+
+下图简要的说明了此程序核心的工作逻辑
+
+```mermaid
+flowchart TD
+    A[启动CLI监控程序] --> B[设置定时器: 定期ping路由器]
+    B --> C{ping 路由器是否可达？}
+    
+    C -- 可达 --> D[构造数据包: 正常]
+    C -- 不可达 --> E[构造数据包: 停电]
+    
+    D --> F[发送到下游 MCDR 服务器]
+    E --> F
+    F --> B
+```
+
 ## 加密
 
 于 `2.0.0-alpha.3` 添加此功能
 
-发出的数据报会通过AES-128-CBC加密
-
-更多信息见 [https://github.com/fernet/spec/blob/master/Spec.md](https://github.com/fernet/spec/blob/master/Spec.md)
+加密标准见 [https://github.com/fernet/spec/blob/master/Spec.md](https://github.com/fernet/spec/blob/master/Spec.md)
 
 ## 许可
 <a href="https://github.com/Crystal0404/CikiECG">CikiECG</a> © 2026 by <a href="https://github.com/Crystal0404">Crystal0404</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
