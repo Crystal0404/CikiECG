@@ -1,20 +1,22 @@
 {
-  "id": "ciki_ecg",
-  "version": "2.0.0-alpha.4",
-  "name": "Ciki ECG",
-  "description": "Ciki的服务器心电监护仪",
-  "author": [
-    "Crystal0404"
-  ],
-  "link": "https://github.com/Crystal0404/CikiECG",
-  "entrypoint": "ciki_ecg.mcdr",
-  "dependencies": {
-    "mcdreforged": ">=2.15.7"
-  },
-  "resources": [
-    "__main__.py",
-    "LICENSE",
-    "lang"
-  ],
-  "archive_name": "CikiECG-v{version}.pyz"
+    "id": "ciki_ecg",
+    "version": "2.0.0-beta.1",
+    "name": "Ciki ECG",
+    "description": {
+        "zh_cn": "在停电时关闭你的服务器!"
+    },
+    "author": [
+        "Crystal0404"
+    ],
+    "link": "https://github.com/Crystal0404/CikiECG",
+    "entrypoint": "ciki_ecg.mcdr",
+    "dependencies": {
+        "mcdreforged": ">=2.15.7"
+    },
+    "resources": [
+        "__main__.py",
+        "LICENSE",
+        "lang"
+    ],
+    "archive_name": "CikiECG-v{version}.pyz"
 }
