@@ -1,6 +1,6 @@
 import asyncio
 import time
-from asyncio import CancelledError, Task
+from asyncio import CancelledError, Task, TaskGroup
 from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Thread, Event
 
@@ -58,9 +58,9 @@ class UdpClient:
 
     async def _async_main(self):
         self._si.logger.info(self._si.rtr("ciki_ecg.task_start"))
-        task = asyncio.create_task(self._receive_loop())
-        asyncio.create_task(self._await_stop_signal(task))
-        await task
+        async with TaskGroup() as tg:
+            task = tg.create_task(self._receive_loop())
+            tg.create_task(self._await_stop_signal(task))
         self._si.logger.info(self._si.rtr("ciki_ecg.task_stop"))
 
     async def _await_stop_signal(self, task: Task):
