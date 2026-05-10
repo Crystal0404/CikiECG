@@ -88,6 +88,10 @@ python CikiECG-v2.0.0-alpha.4.pyz init
 python CikiECG-v2.0.0-alpha.4.pyz start
 ```
 
+### 关闭
+
+你可以输入`stop`关闭CLI程序
+
 ## MCDR插件客户端
 
 ### 依赖安装
