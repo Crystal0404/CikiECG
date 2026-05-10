@@ -1,28 +1,41 @@
-## Ciki ECG
+# Ciki ECG
 
-Ciki的服务器心电监护仪, 用于在停电时在UPS有限的供电时间内关闭服务器防止数据损坏
+Ciki的服务器心电监护仪
 
-它既是一个CLI程序, 也是一个MCDR插件
+一个针对入门级UPS的低成本停电检测插件
 
-## 先决条件
-1. 服务器需要连接着一台UPS(不间断电源)
-2. 一台连接着电网的路由器
+用于在停电时在UPS有限的供电时间内关闭服务器防止数据损坏
 
-## 特别注意
+![image](doc/image/power_off.png)
 
-**不要泄露`aes_key`, 它是防御恶意攻击的最后一道屏障**
+**它既是一个MCDR插件, 也是一个CLI程序**
 
-## 使用
+------------------------------------------------------
 
-你需要将它作为CLI程序启动作为服务器, 同时作为插件安装在你的MCDR服务器上作为客户端.
+# 先决条件
 
-CLI会先通过ping你的路由器判断是否停电, 再向MCDR插件客户端发送加密数据包通知当前的供电状态
+**使用此插件需物理硬件支持, 使用前请务必确认你拥有以下设备**
 
-## 依赖安装
+### 1. UPS(不间断电源)
+
+在停电后依然可以为服务器短暂供电, 使此插件有时间检测供电状态和关闭你的服务器
+
+### 2. 路由器(或其它可以响应Ping请求的设备)
+
+连接在公共电网上, 当插件无法Ping到此设备, 即视为停电
+
+------------------------------------------------------
+
+# 安装与使用
+
+你需要将CLI程序作为服务端, MCDR插件作为客户端.
+
+## CLI服务端
+
+### 依赖安装
 
 **强烈建议在python的虚拟环境中安装所有依赖!!**
 
-### CLI
 依赖位于[requirements-cli.txt](https://github.com/Crystal0404/CikiECG/blob/master/requirements-cli.txt)
 
 也可以使用此命令安装
@@ -30,25 +43,15 @@ CLI会先通过ping你的路由器判断是否停电, 再向MCDR插件客户端�
 pip install colorlog cryptography pydantic ping3
 ```
 
-### MCDR
-
-依赖位于[requirements.txt](https://github.com/Crystal0404/CikiECG/blob/master/requirements.txt)
-
-也可以使用此命令安装
-```commandline
-pip install cryptography pydantic
-```
-
-## 配置
-MCDR首次加载此插件即可生成配置文件
+### 初始化
 
 CLI使用以下命令使其生成配置文件(注意文件名可能不一样)
 
 ```commandline
-python CikiECG-v2.0.0-alpha.1.pyz init
+python CikiECG-v2.0.0-alpha.4.pyz init
 ```
 
-## CLI
+### 配置
 ```json5
 {
   "ip": "192.168.0.1", // 你的路由器IP
@@ -77,7 +80,27 @@ python CikiECG-v2.0.0-alpha.1.pyz init
 }
 ```
 
-## MCDR
+### 启动
+
+使用如下命令启动CLI服务端(注意文件名可能不一样)
+
+```commandline
+python CikiECG-v2.0.0-alpha.4.pyz start
+```
+
+## MCDR插件客户端
+
+### 依赖安装
+
+依赖位于[requirements.txt](https://github.com/Crystal0404/CikiECG/blob/master/requirements.txt)
+
+也可以使用此命令安装
+```commandline
+pip install cryptography pydantic
+```
+
+### 配置
+
 ```json5
 {
     "ip": "127.0.0.1", // 客户端IP
@@ -93,34 +116,24 @@ python CikiECG-v2.0.0-alpha.1.pyz init
     }
 }
 ```
+------------------------------------------------------
 
-## 启动
+# MCDR事件
 
-配置完一切后就可以启动了
+此插件会分发一些事件, 其它插件可以通过监听这些事件来实现一些自定义功能
 
-### CLI
-注意文件名可能不一样
-```commandline
-python CikiECG-v2.0.0-alpha.1.pyz start
-```
-
-### MCDR
-与其他插件一样, 会随着MCDR启动
-
-插件卸载时会自动关闭
-
-## MCDR事件
-
-此插件会分发一些事件, 如有需要可以监听
-
-### `ciki_ecg.power_off`
+## `ciki_ecg.power_off`
 检测到停电时会分发此事件
 
-### `ciki_ecg.power_on`
+## `ciki_ecg.power_on`
 恢复供电时会分发此事件
 
-### `ciki_ecg.server_stop`
+## `ciki_ecg.server_stop`
 由此插件关闭服务器时会分发
+
+------------------------------------------------------
+
+# 其它
 
 ## 工作原理
 
@@ -139,14 +152,8 @@ flowchart TD
     F --> B
 ```
 
-## 加密
-
-于 `2.0.0-alpha.3` 添加此功能
-
-加密标准见 [https://github.com/fernet/spec/blob/master/Spec.md](https://github.com/fernet/spec/blob/master/Spec.md)
-
-## 许可
-<a href="https://github.com/Crystal0404/CikiECG">CikiECG</a> © 2026 by <a href="https://github.com/Crystal0404">Crystal0404</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
-
 ## 冷知识
 Ciki其实是一个人, 因为ta家经常停电所以有了这个项目 : )
+
+## 许可
+    This work is licensed under CC BY-NC-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/

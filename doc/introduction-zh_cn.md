@@ -1,0 +1,40 @@
+# Ciki ECG
+
+Ciki的服务器心电监护仪
+
+一个针对入门级UPS的低成本停电检测插件
+
+用于在停电时在UPS有限的供电时间内关闭服务器防止数据损坏
+
+![image](image/power_off.png)
+
+## 先决条件
+
+**使用此插件需物理硬件支持, 使用前请务必确认你拥有以下设备**
+
+### UPS(不间断电源)
+
+在停电后依然可以为服务器短暂供电, 使此插件有时间检测供电状态和关闭你的服务器
+
+### 路由器(或其它可以响应Ping请求的设备)
+
+连接在公共电网上, 当插件无法Ping到此设备, 即视为停电
+
+## MCDR事件
+此插件会分发一些事件, 其它插件可以通过监听这些事件来实现一些自定义功能
+
+### `ciki_ecg.power_off`
+检测到停电时会分发此事件
+
+### `ciki_ecg.power_on`
+恢复供电时会分发此事件
+
+### `ciki_ecg.server_stop`
+由此插件关闭服务器时会分发此事件
+
+## 更多信息
+
+请阅读[README](https://github.com/Crystal0404/CikiECG)
+
+## 许可
+    This work is licensed under CC BY-NC-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
