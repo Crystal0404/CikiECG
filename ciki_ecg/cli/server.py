@@ -18,11 +18,11 @@ def _is_online() -> bool:
         status = ping(config().ip, timeout=config().timeout)
     except OSError:
         return False
-
-    if status is None:
-        return False
     else:
-        return status is not False
+        if status is None:
+            return False
+        else:
+            return status is not False
 
 
 class UdpServer:
