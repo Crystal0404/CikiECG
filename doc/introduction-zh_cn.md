@@ -35,6 +35,3 @@ Ciki的服务器心电监护仪
 ## 更多信息
 
 请阅读[README](https://github.com/Crystal0404/CikiECG)
-
-## 许可
-    This work is licensed under CC BY-NC-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
