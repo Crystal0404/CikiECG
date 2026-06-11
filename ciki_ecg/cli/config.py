@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, ConfigDict, ValidationError, field_valida
 
 from ciki_ecg.cli.logutil import LOG
 
-__all__ = ["config", "write_config"]
+__all__ = ["config", "write_config", "generate_key"]
 PATH = Path("config.json")
 SHUTDOWN_TIME = {
     "Windows": 300,
@@ -67,8 +67,16 @@ def config() -> Config:
 
 def write_config():
     with PATH.open("w", encoding="utf-8") as f:
-        f.write(Config().model_dump_json(indent=2))
+        f.write(Config().model_dump_json(indent=4))
     LOG.info("Successfully created config file!")
+
+
+def generate_key():
+    configs = config()
+    configs.aes_key = Fernet.generate_key().decode("utf-8")
+    with PATH.open("w", encoding="utf-8") as f:
+        f.write(configs.model_dump_json(indent=4))
+    LOG.info("Successfully regenerated aes_key!")
 
 
 if __name__ == "__main__":
