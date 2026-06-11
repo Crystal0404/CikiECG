@@ -140,7 +140,7 @@ class UdpClient:
             data = Data.model_validate_json(data_byte)
         except InvalidToken:
             return None
-        except (ValueError | ValidationError):
+        except (ValueError, ValidationError):
             self._si.logger.error(self._si.rtr("ciki_ecg.parsing_error"))
             return None
         else:

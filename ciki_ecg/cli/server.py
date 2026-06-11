@@ -2,6 +2,7 @@ import asyncio
 import platform
 import subprocess
 import time
+import math
 from asyncio import Event, CancelledError, Task, AbstractEventLoop
 from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Thread
@@ -102,13 +103,13 @@ class UdpServer:
                 self._shutdown()
 
     def _shutdown(self):
+        LOG.info(f"The server will be down after {self._shutdown_time}s")
         match platform.system():
             case "Windows":
-                LOG.info(f"The server will be down after {self._shutdown_time}s")
                 subprocess.run(["shutdown", "/s", "/t", f"{self._shutdown_time}"])
             case "Linux":
-                LOG.info(f"The server will be down after {self._shutdown_time}min")
-                subprocess.run(["sudo", "shutdown", "-h", f"+{self._shutdown_time}"])
+                minutes = math.ceil(self._shutdown_time / 60)  # Linux only allows minutes
+                subprocess.run(["sudo", "shutdown", "-h", f"+{minutes}"])
             case pf:
                 LOG.error(f"Automatic shutdown is not supported on the current system ({pf})!")
 

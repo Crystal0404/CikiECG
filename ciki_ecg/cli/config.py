@@ -1,4 +1,3 @@
-import platform
 from functools import cache
 from pathlib import Path
 
@@ -9,10 +8,6 @@ from ciki_ecg.cli.logutil import LOG
 
 __all__ = ["config", "write_config", "generate_key"]
 PATH = Path("config.json")
-SHUTDOWN_TIME = {
-    "Windows": 300,
-    "Linux": 5
-}
 
 
 class Client(BaseModel):
@@ -38,7 +33,7 @@ class Config(BaseModel):
     server_bind: Server = Field(default_factory=Server)
     fail_try: int = Field(default=3, ge=1, lt=0x7FFFFFFF)
     shutdown: bool = False
-    shutdown_time: int = Field(default_factory=lambda: SHUTDOWN_TIME.get(platform.system(), 300))
+    shutdown_time: int = Field(default=300, ge=0)
     clients: list[Client] = Field(default_factory=list)
     aes_key: str = Field(default_factory=lambda: Fernet.generate_key().decode("utf-8"))
 
