@@ -3,6 +3,7 @@
     "version": "2.0.0-beta.2",
     "name": "Ciki ECG",
     "description": {
+        "en_us": "Shut down your server during a power outage!",
         "zh_cn": "在停电时关闭你的服务器!"
     },
     "author": [
