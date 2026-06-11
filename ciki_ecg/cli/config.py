@@ -30,11 +30,11 @@ class Config(BaseModel):
     timeout: int = 5
     interval: int = 100
     server_bind: Server = Field(default_factory=Server)
-    fail_try: int = 3
+    fail_try: int = Field(default=3, ge=1, lt=0x7FFFFFFF)
     shutdown: bool = False
     shutdown_time: int = 300
     clients: list[Client] = Field(default_factory=list)
-    aes_key: str = Fernet.generate_key().decode("utf-8")
+    aes_key: str = Field(default_factory=lambda : Fernet.generate_key().decode("utf-8"))
 
     @field_validator("aes_key")
     @classmethod

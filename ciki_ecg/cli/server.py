@@ -6,6 +6,7 @@ from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Thread
 
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.padding import PKCS7
 from ping3 import ping
 
 from ciki_ecg.cli.config import config
@@ -106,7 +107,10 @@ class UdpServer:
     def _get_data(self) -> bytes:
         data = Data(online=self._online, time=self._time)
         data_byte = data.model_dump_json().encode("utf-8")
-        token = self._fernet.encrypt_at_time(data_byte, int(time.time()))
+        padder = PKCS7(304).padder() # The maximum is 37 bytes, so we fill it up to 38 bytes
+        padder_data_byte = padder.update(data_byte)
+        padder_data_byte += padder.finalize()
+        token = self._fernet.encrypt_at_time(padder_data_byte, int(time.time()))
         return token
 
     def _refresh_status(self):

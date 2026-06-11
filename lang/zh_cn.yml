@@ -9,3 +9,4 @@ ciki_ecg:
   stop: 服务器即将关闭
   timeout: 超过{}s未收到任何数据, 服务器即将关闭
   warning: 警告
+  parsing_error: 无法读取数据包, 请确认插件版本与CLI版本是否相同

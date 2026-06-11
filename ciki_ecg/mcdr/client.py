@@ -5,6 +5,7 @@ from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Thread, Event
 
 from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives.padding import PKCS7
 from mcdreforged import *
 from pydantic import ValidationError
 
@@ -132,9 +133,15 @@ class UdpClient:
 
     def _get_data(self, data: bytes) -> Data | None:
         try:
-            data_str = self._fernet.decrypt_at_time(data, self._ttl, int(time.time())).decode("utf-8")
-            data = Data.model_validate_json(data_str)
-        except (InvalidToken, ValidationError):
+            padder_data_byte = self._fernet.decrypt_at_time(data, self._ttl, int(time.time()))
+            unpadder = PKCS7(304).unpadder()
+            data_byte = unpadder.update(padder_data_byte)
+            data_byte += unpadder.finalize()
+            data = Data.model_validate_json(data_byte)
+        except InvalidToken:
+            return None
+        except (ValueError | ValidationError):
+            self._si.logger.error(self._si.rtr("ciki_ecg.parsing_error"))
             return None
         else:
             return data
