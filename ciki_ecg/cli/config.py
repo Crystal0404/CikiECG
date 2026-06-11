@@ -1,3 +1,4 @@
+import platform
 from functools import cache
 from pathlib import Path
 
@@ -7,6 +8,11 @@ from pydantic import BaseModel, Field, ConfigDict, ValidationError, field_valida
 from ciki_ecg.cli.logutil import LOG
 
 __all__ = ["config", "write_config"]
+PATH = Path("config.json")
+SHUTDOWN_TIME = {
+    "Windows": 300,
+    "Linux": 5
+}
 
 
 class Client(BaseModel):
@@ -32,18 +38,15 @@ class Config(BaseModel):
     server_bind: Server = Field(default_factory=Server)
     fail_try: int = Field(default=3, ge=1, lt=0x7FFFFFFF)
     shutdown: bool = False
-    shutdown_time: int = 300
+    shutdown_time: int = Field(default_factory=lambda: SHUTDOWN_TIME.get(platform.system(), 300))
     clients: list[Client] = Field(default_factory=list)
-    aes_key: str = Field(default_factory=lambda : Fernet.generate_key().decode("utf-8"))
+    aes_key: str = Field(default_factory=lambda: Fernet.generate_key().decode("utf-8"))
 
     @field_validator("aes_key")
     @classmethod
     def key_validation(cls, key: str):
         Fernet(key)  # If it doesn't work, a ValueError will pop up
         return key
-
-
-PATH = Path("config.json")
 
 
 @cache

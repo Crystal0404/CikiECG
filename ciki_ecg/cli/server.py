@@ -1,4 +1,5 @@
 import asyncio
+import platform
 import subprocess
 import time
 from asyncio import Event, CancelledError, Task, AbstractEventLoop
@@ -101,13 +102,20 @@ class UdpServer:
                 self._shutdown()
 
     def _shutdown(self):
-        LOG.info(f"The server will be down after {self._shutdown_time}s")
-        subprocess.run(["shutdown", "/s", "/t", f"{self._shutdown_time}"])
+        match platform.system():
+            case "Windows":
+                LOG.info(f"The server will be down after {self._shutdown_time}s")
+                subprocess.run(["shutdown", "/s", "/t", f"{self._shutdown_time}"])
+            case "Linux":
+                LOG.info(f"The server will be down after {self._shutdown_time}min")
+                subprocess.run(["sudo", "shutdown", "-h", f"+{self._shutdown_time}"])
+            case pf:
+                LOG.error(f"Automatic shutdown is not supported on the current system ({pf})!")
 
     def _get_data(self) -> bytes:
         data = Data(online=self._online, time=self._time)
         data_byte = data.model_dump_json().encode("utf-8")
-        padder = PKCS7(304).padder() # The maximum is 37 bytes, so we fill it up to 38 bytes
+        padder = PKCS7(304).padder()  # The maximum is 37 bytes, so we fill it up to 38 bytes
         padder_data_byte = padder.update(data_byte)
         padder_data_byte += padder.finalize()
         token = self._fernet.encrypt_at_time(padder_data_byte, int(time.time()))
