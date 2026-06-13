@@ -35,6 +35,9 @@ class UdpClient:
         self._event = Event()
         self._thread = Thread(target=self._thread_entry, daemon=True, name="CikiECG")
 
+        # error log
+        self._first = True
+
     def start(self):
         """
         Start receiving
@@ -141,9 +144,12 @@ class UdpClient:
         except InvalidToken:
             return None
         except (ValueError, ValidationError):
-            self._si.logger.error(self._si.rtr("ciki_ecg.parsing_error"))
+            if self._first:
+                self._first = False
+                self._si.logger.error(self._si.rtr("ciki_ecg.parsing_error"))
             return None
         else:
+            self._first = True
             return data
 
 
