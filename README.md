@@ -30,25 +30,24 @@ Ciki的服务器心电监护仪
 
 你需要将CLI程序作为服务端, MCDR插件作为客户端.
 
-## CLI服务端
+## 依赖安装
 
-### 依赖安装
+依赖位于[requirements.txt](requirements.txt)
 
-**强烈建议在python的虚拟环境中安装所有依赖!!**
+也可以使用以下命令安装
 
-依赖位于[requirements-cli.txt](https://github.com/Crystal0404/CikiECG/blob/master/requirements-cli.txt)
-
-也可以使用此命令安装
 ```commandline
-pip install colorlog cryptography pydantic ping3
+pip install pydantic cryptography colorlog ping3
 ```
+
+## CLI服务端
 
 ### 初始化
 
 CLI使用以下命令使其生成配置文件(注意文件名可能不一样)
 
 ```commandline
-python CikiECG-v2.0.0-alpha.4.pyz init
+python CikiECG-v2.1.0.pyz init
 ```
 
 ### 配置
@@ -63,7 +62,7 @@ python CikiECG-v2.0.0-alpha.4.pyz init
     "port": 8888
   },
   "fail_try": 3, // 当ping不到路由器超过3次后程序会自动关闭
-  "shutdown": false, // 如果为true, 程序关闭前会为你的物理机设置定时关机(目前仅windows可用)
+  "shutdown": false, // 如果为true, 程序关闭前会为你的物理机设置定时关机, Linux需要配置sudo权限(仅Windows与Linux)
   "shutdown_time": 600, // 定时关机时间, 建议设置一个较长时间
   "clients": [
     // MCDR服务器的列表
@@ -85,7 +84,15 @@ python CikiECG-v2.0.0-alpha.4.pyz init
 使用如下命令启动CLI服务端(注意文件名可能不一样)
 
 ```commandline
-python CikiECG-v2.0.0-alpha.4.pyz start
+python CikiECG-v2.1.0.pyz start
+```
+
+### 重新生成密钥
+
+如果你需要更换密钥, 你可以使用下面命令更换`config.json`中的密钥(注意文件名可能不一样)
+
+```commandline
+python CikiECG-v2.1.0.pyz generate-key
 ```
 
 ### 关闭
@@ -93,15 +100,6 @@ python CikiECG-v2.0.0-alpha.4.pyz start
 你可以输入`stop`关闭CLI程序
 
 ## MCDR插件客户端
-
-### 依赖安装
-
-依赖位于[requirements.txt](https://github.com/Crystal0404/CikiECG/blob/master/requirements.txt)
-
-也可以使用此命令安装
-```commandline
-pip install cryptography pydantic
-```
 
 ### 配置
 
@@ -112,7 +110,7 @@ pip install cryptography pydantic
     "backup": false, // 设置为true, 首次检测到停电时会触发备份
     "backup_command": "!!qb make", // 备份指令, 配合QBM等插件使用
     "stop": true, // 停电后是否自动关闭服务器
-    "stop_count": 3, // stop设置为true时, cli连续n此ping不到路由器, 服务器将自动关闭(不要超过cli中fail_try的值!)
+    "stop_count": 3, // stop设置为true时, cli连续n次ping不到路由器, 服务器将自动关闭(不要超过cli中fail_try的值!)
     "timeout": null, // 设置在多少秒内没收到任何来自CLI的有效数据包后关闭服务器, 设置为null禁用此功能
     "decrypt": {
         "aes_key": "", // 设置为与CLI相同的aes_key
