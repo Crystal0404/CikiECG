@@ -3,10 +3,10 @@ from mcdreforged import *
 from ciki_ecg.mcdr.config import Config
 from ciki_ecg.mcdr.event import *
 
-CONFIG = Config()
+CONFIG: Config | None = None
 
 
-def on_load(plg: PluginServerInterface, *args):
+def on_load(plg: PluginServerInterface, _):
     global CONFIG
     CONFIG = plg.load_config_simple(target_class=Config)
 
@@ -17,7 +17,7 @@ def on_load(plg: PluginServerInterface, *args):
         plg.logger.warning(plg.rtr("ciki_ecg.aes_key_not_set"))
 
 
-def on_unload(plg: PluginServerInterface):
+def on_unload(_: PluginServerInterface):
     if CONFIG.decrypt.aes_key != "":  # Do not shut down without setting the aes_key
         from ciki_ecg.mcdr.client import INSTANCE
         INSTANCE.shutdown_with_blocking()

@@ -1,8 +1,8 @@
 import asyncio
+import math
 import platform
 import subprocess
 import time
-import math
 from asyncio import Event, CancelledError, Task, AbstractEventLoop
 from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Thread
