@@ -1,6 +1,6 @@
 {
     "id": "ciki_ecg",
-    "version": "2.0.0-beta.2",
+    "version": "2.1.0",
     "name": "Ciki ECG",
     "description": {
         "en_us": "Shut down your server during a power outage!",
